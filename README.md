@@ -2,7 +2,7 @@
 
 A full-stack email scheduling application built with React, Express.js, TypeScript, Supabase, BullMQ, and Redis.
 
-## 🚀 Features
+## Features
 
 - **Google OAuth Authentication** - Sign in with Google
 - **Email Scheduling** - Schedule emails to be sent at a specific time
