@@ -1,4 +1,4 @@
-# 📧 Email Scheduler
+# Email Scheduler
 
 A full-stack email scheduling application built with React, Express.js, TypeScript, Supabase, BullMQ, and Redis.
 
@@ -14,7 +14,7 @@ A full-stack email scheduling application built with React, Express.js, TypeScri
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 email-scheduler/
@@ -41,7 +41,7 @@ email-scheduler/
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 ### Frontend
 
@@ -65,7 +65,7 @@ email-scheduler/
 
 ---
 
-## ⚡ Quick Start
+## Quick Start
 
 ### Prerequisites
 
@@ -148,14 +148,14 @@ npm run dev
 
 ---
 
-## 📖 Documentation
+## Documentation
 
 - [Frontend README](./frontend/README.md) - Frontend setup and architecture
 - [Backend README](./backend/README.md) - Backend setup and API documentation
 
 ---
 
-## 🔐 Google OAuth Setup
+## Google OAuth Setup
 
 1. Go to [Google Cloud Console](https://console.cloud.google.com/)
 2. Create a new project or select existing
@@ -396,12 +396,12 @@ npm run dev
 
 **What starts:**
 
-- ✅ Express API server on port 5000
-- ✅ BullMQ email worker with 5 concurrent jobs
-- ✅ Redis connection for queue storage
-- ✅ Supabase database connection
-- ✅ SMTP connection to Ethereal Email
-- ✅ Restart recovery (requeues scheduled emails)
+- [x] Express API server on port 5000
+- [x] BullMQ email worker with 5 concurrent jobs
+- [x] Redis connection for queue storage
+- [x] Supabase database connection
+- [x] SMTP connection to Ethereal Email
+- [x] Restart recovery (requeues scheduled emails)
 
 ### Step 5: Run Frontend
 
@@ -431,9 +431,3 @@ npm run dev
 4. Schedule it for 1 minute from now
 5. Watch the dashboard update when email is sent
 6. Check Ethereal inbox: https://ethereal.email/messages
-
----
-
-## 📝 License
-
-MIT
