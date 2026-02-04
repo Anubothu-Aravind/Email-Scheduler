@@ -1,0 +1,14 @@
+@import "tailwindcss";
+
+/* Placeholder for contentEditable */
+[contenteditable][data-placeholder]:empty:before {
+  content: attr(data-placeholder);
+  color: #9ca3af;
+  pointer-events: none;
+  position: absolute;
+}
+
+[contenteditable] {
+  direction: ltr;
+  text-align: left;
+}

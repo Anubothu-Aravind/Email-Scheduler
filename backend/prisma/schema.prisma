@@ -1,0 +1,117 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User model for authentication
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  senders Sender[]
+
+  @@map("users")
+}
+
+// Sender model - multiple senders can exist
+model Sender {
+  id         String   @id @default(uuid())
+  name       String
+  email      String
+  smtpHost   String?
+  smtpPort   Int?
+  smtpUser   String?
+  smtpPass   String?
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  emails Email[]
+
+  @@map("senders")
+}
+
+// Email model - stores all scheduled emails
+model Email {
+  id               String    @id @default(uuid())
+  
+  // Email content
+  recipientEmail   String
+  recipientName    String?
+  subject          String
+  body             String    @db.Text
+  htmlBody         String?   @db.Text
+  
+  // Scheduling
+  scheduledAt      DateTime
+  
+  // Status tracking
+  status           EmailStatus @default(PENDING)
+  sentAt           DateTime?
+  failedAt         DateTime?
+  errorMessage     String?   @db.Text
+  
+  // BullMQ job tracking
+  jobId            String?   @unique
+  
+  // Rate limiting and retry tracking
+  attemptCount     Int       @default(0)
+  maxAttempts      Int       @default(3)
+  nextRetryAt      DateTime?
+  
+  // Idempotency
+  idempotencyKey   String?   @unique
+  
+  // Metadata
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  senderId String
+  sender   Sender @relation(fields: [senderId], references: [id], onDelete: Cascade)
+
+  logs EmailLog[]
+
+  @@index([status])
+  @@index([scheduledAt])
+  @@index([senderId, scheduledAt])
+  @@map("emails")
+}
+
+enum EmailStatus {
+  PENDING      // Waiting to be sent
+  SCHEDULED    // Added to BullMQ queue
+  PROCESSING   // Currently being sent
+  SENT         // Successfully sent
+  FAILED       // Failed after all retries
+  RATE_LIMITED // Delayed due to rate limiting
+}
+
+// Email log model - tracks all state changes
+model EmailLog {
+  id        String   @id @default(uuid())
+  emailId   String
+  status    EmailStatus
+  message   String?  @db.Text
+  metadata  String?  @db.Text // JSON string for additional data
+  createdAt DateTime @default(now())
+
+  email Email @relation(fields: [emailId], references: [id], onDelete: Cascade)
+
+  @@index([emailId])
+  @@index([createdAt])
+  @@map("email_logs")
+}

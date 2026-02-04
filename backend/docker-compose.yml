@@ -1,0 +1,81 @@
+version: '3.8'
+
+services:
+  # Redis for BullMQ
+  redis:
+    image: redis:7-alpine
+    container_name: email-scheduler-redis
+    ports:
+      - '6379:6379'
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 3s
+      retries: 3
+    networks:
+      - email-scheduler-network
+
+  # Email Scheduler API
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: email-scheduler-api
+    ports:
+      - '5000:5000'
+    environment:
+      - NODE_ENV=production
+      - PORT=5000
+      - DATABASE_URL=${DATABASE_URL}
+      - REDIS_URL=redis://redis:6379
+      - JWT_SECRET=${JWT_SECRET}
+      - CORS_ORIGIN=${CORS_ORIGIN}
+      - ETHEREAL_USER=${ETHEREAL_USER}
+      - ETHEREAL_PASS=${ETHEREAL_PASS}
+      - SMTP_HOST=${SMTP_HOST}
+      - SMTP_PORT=${SMTP_PORT}
+      - WORKER_CONCURRENCY=${WORKER_CONCURRENCY}
+      - MIN_DELAY_BETWEEN_EMAILS_MS=${MIN_DELAY_BETWEEN_EMAILS_MS}
+      - MAX_EMAILS_PER_HOUR_PER_SENDER=${MAX_EMAILS_PER_HOUR_PER_SENDER}
+    depends_on:
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./logs:/app/logs
+    networks:
+      - email-scheduler-network
+    restart: unless-stopped
+
+  # Email Worker (separate process for processing jobs)
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: email-scheduler-worker
+    command: ['node', 'dist/workers/emailWorker.js']
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=${DATABASE_URL}
+      - REDIS_URL=redis://redis:6379
+      - ETHEREAL_USER=${ETHEREAL_USER}
+      - ETHEREAL_PASS=${ETHEREAL_PASS}
+      - SMTP_HOST=${SMTP_HOST}
+      - SMTP_PORT=${SMTP_PORT}
+      - WORKER_CONCURRENCY=${WORKER_CONCURRENCY}
+      - MIN_DELAY_BETWEEN_EMAILS_MS=${MIN_DELAY_BETWEEN_EMAILS_MS}
+      - MAX_EMAILS_PER_HOUR_PER_SENDER=${MAX_EMAILS_PER_HOUR_PER_SENDER}
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - email-scheduler-network
+    restart: unless-stopped
+
+networks:
+  email-scheduler-network:
+    driver: bridge
+
+volumes:
+  redis-data:
